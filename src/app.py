@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import openai
 import os
 from flask_cors import CORS
+from model import get_ai_response
 
 app = Flask(__name__)
 CORS(app)
@@ -26,10 +27,21 @@ def signup():
     print("user id " + userId + " added to map!")
     return jsonify({"message": "Signup successful"}), 200
 
+@app.route('/avatar-response', methods=['POST'])
+def avatar_response():
+    data = request.json
+    input = data.get('input')
+    userId = data.get('userId')
+    chat_history = get_chat_history(userId)
+    response = get_ai_response(userId, input, chat_history)
+    return jsonify(response)
+
+
+
 # Utility functions for user chat history map
 
 def add_to_map(user_id):
-    user_chat_map[user_id] = ""
+    user_chat_map[user_id] = []
     print("Size of user chatbot map:", len(user_chat_map))
 
 def get_chat_history(user_id):
