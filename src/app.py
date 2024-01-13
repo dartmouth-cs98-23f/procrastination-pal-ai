@@ -43,8 +43,10 @@ def avatar_response():
     response = get_ai_response(userId, input, chat_history)
     set_chat_history(userId, response)
     curr_reply = response[-1]['content']
+    to_send = {}
+    to_send['message'] = curr_reply
     print("the current response is " + curr_reply)
-    return jsonify(curr_reply)
+    return jsonify(to_send)
 
 
 

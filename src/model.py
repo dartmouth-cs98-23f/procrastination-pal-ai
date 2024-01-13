@@ -164,7 +164,7 @@ def complete(userId, messages, function_call: str = "auto"):
                 tasks=args.get("tasks"),
                 user_id=userId,   
             )
-            messages.append({ "role": "assistant", "content": "Your to-do list has been updated, and is available in the \"Todo List\" tab. You can review your tasks there, then use the \“Timer\” tab to tackle your tasks with a Pomodoro timer. If you want more details about using a Pomodoro timer, or need some encouragement, I\'ll be here. Good luck!"})
+            messages.append({ "role": "assistant", "content": "Your to-do list has been updated, and is available in the \"Todo List\" tab. You can review your tasks there, then use the “Timer” tab to tackle your tasks with a Pomodoro timer. If you want more details about using a Pomodoro timer, or need some encouragement, I\'ll be here. Good luck!"})
     else:
         messages.append({'role': role, 'content': content})
     
