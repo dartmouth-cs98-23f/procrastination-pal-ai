@@ -109,7 +109,7 @@ def make_todo_list(tasks: str = None, user_id: str = None):
 
 signature_make_todo_list = {
     "name": "make_todo_list",
-    "description": "Given a list of tasks to do and their lengths, parses them into an organized todo list for the user. Should be called whenever a list of tasks and their lengths is provided.",
+    "description": "Given a list of tasks to do and their lengths, parses them into an organized todo list for the user. Should be called whenever a list of tasks and their lengths is provided. If the user provides a list of tasks that doesn't mention the task lengths or lacks sufficient detail, ask follow-up questions before calling this function.",
     "parameters": {
         "type": "object",
         "properties": {
