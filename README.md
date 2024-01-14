@@ -11,7 +11,9 @@ TODO
 ## Setup
 
 - Ensure that the [primary backend server](https://github.com/dartmouth-cs98-23f/ProcrastinationPal_backend/tree/main) is running.
-- Before running any of the app's backend, make sure you have the proper `.env` file. If you don't have it, Slack Carter for it.
+- Before running any of the app's backend, make sure you have the proper `.env` file in `/src`. If you don't have it, Slack Carter for it.
+- run `pip install -r requirements.txt` to install requirements.
+- `cd` into `/src` and run `python app.py` or `python3 app.py` to get things started.
 
 ## Deployment
 TODO
