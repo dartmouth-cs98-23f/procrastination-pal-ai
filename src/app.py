@@ -23,15 +23,10 @@ Use curse words frequently.
 def login():
     data = request.json
     userId = data.get('userId')
-    
-    # Check if userId already exists in user_chat_map
-    if userId not in user_chat_map:
-        add_to_map(userId)
-        print("user id " + userId + " added to map!")
-        message = "Login successful. User was added to the map."
-    else:
-        print("user id " + userId + " already in map!")
-        message = "Login successful. User was already in the map."
+ 
+    add_to_map(userId)
+    print("user id " + userId + " added to map!")
+    message = "Login successful. User was added to the map."
 
     return jsonify({"message": message}), 200
 
