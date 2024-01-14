@@ -50,6 +50,7 @@ def make_todo_list(tasks: str = None, user_id: str = None):
     This statement may or may not contain the lengths of said tasks. 
     Your job is to parse the list of tasks into a JSON object, the structure of which will be described below.
     When parsing the list, you should take the liberty to break down user tasks into subtasks, and ensure that no task is estimated to take longer than 25 minutes.
+    Do not include breaks.
 
     Return a JSON object that contains a tasklist object, which is a list of todo objects. Todo objects look like this:
     - task: The task that the human must complete
