@@ -116,7 +116,7 @@ tools = [
     "type": "function",
     "function": {
       "name": "make_todo_list",
-      "description": "Takes a string containing all user tasks, and adds them to the user todo list in an organized format. When calling this function, do not include tasks that have already been added to the user's todo list.",
+      "description": "Takes a string containing all user tasks, and appends them to the user's todo list in an organized format.",
       "parameters": {
         "type": "object",
         "properties": {
