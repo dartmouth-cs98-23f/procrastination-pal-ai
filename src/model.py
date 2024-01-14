@@ -20,7 +20,7 @@ llm_model = "gpt-4-1106-preview"
 llm_max_tokens = 31000
 encoding_model_messages = "gpt-4-0613"
 encoding_model_strings = "cl100k_base"
-function_call_limit = 5
+function_call_limit = 1
 
 
 
@@ -115,7 +115,7 @@ tools = [
     "type": "function",
     "function": {
       "name": "make_todo_list",
-      "description": "Given one or more tasks, adds these tasks to the user's todo list. For a given collection of tasks, only call this function once, instead of calling it for each task separately. Do not provide inputs that you have already added to the user's todo list.",
+      "description": "Takes a string containing all user tasks, and adds them to the user todo list in an organized format. When calling this function, do not include tasks that have already been added to the user's todo list.",
       "parameters": {
         "type": "object",
         "properties": {
