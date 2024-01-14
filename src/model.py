@@ -16,11 +16,11 @@ my_api_key=os.getenv("OPENAI_API_KEY")
 node_backend_api=os.getenv("NODE_BACKEND_API")
 
 client = OpenAI(api_key=my_api_key)
-llm_model = "gpt-4"
+llm_model = "gpt-4-1106-preview"
 llm_max_tokens = 31000
 encoding_model_messages = "gpt-4-0613"
 encoding_model_strings = "cl100k_base"
-function_call_limit = 3
+function_call_limit = 5
 
 
 
@@ -84,7 +84,7 @@ def make_todo_list(tasks: str = None, user_id: str = None):
     # Add new message to the list
     messages_temp.append({"role": "user", "content": message})
 
-    # Request gpt-3.5-turbo for chat completion
+    # Request model for chat completion
     response = client.chat.completions.create(model="gpt-4-1106-preview",
     messages=messages_temp,
     response_format={ "type": "json_object" })
@@ -105,26 +105,30 @@ def make_todo_list(tasks: str = None, user_id: str = None):
     # Print the response from the server
     print(f"Status Code: {response.status_code}")
     print(f"Response Body: {response.text}")
+    # Directly parse the JSON response
+    response_data = response.json()
+    todolist = response_data['todolist']
+    return todolist
 
-
-signature_make_todo_list = {
-    "name": "make_todo_list",
-    "description": "Given a list of tasks to do and their lengths, parses them into an organized todo list for the user. Should be called whenever a list of tasks and their lengths is provided. If the user provides a list of tasks that doesn't mention the task lengths or lacks sufficient detail, ask follow-up questions before calling this function.",
-    "parameters": {
+tools = [
+  {
+    "type": "function",
+    "function": {
+      "name": "make_todo_list",
+      "description": "Given one or more tasks, adds these tasks to the user's todo list. For a given collection of tasks, only call this function once, instead of calling it for each task separately. Do not provide inputs that you have already added to the user's todo list.",
+      "parameters": {
         "type": "object",
         "properties": {
-            "tasks": {
+          "tasks": {
                 "type": "string",
                 "description": "String of user tasks and their estimated time to complete",
             },
-            "user_id": {
-                "type": "string",
-                "description": "The user id of the user whose todo list we want to update",
-            },
         },
         "required": [],
+      },
     }
-}
+  }
+]
 
 # signature_add_todo = {
 #     "name": "add_todo",
@@ -135,7 +139,7 @@ signature_make_todo_list = {
 # }
 
 
-def complete(userId, messages, function_call: str = "auto"):
+def complete(userId, messages, tool_choice: str = "auto"):
     """Fetch completion from OpenAI's GPT"""
 
     # delete older completions to keep conversation under token limit
@@ -145,26 +149,30 @@ def complete(userId, messages, function_call: str = "auto"):
     print('Working...')
     res = client.chat.completions.create(model=llm_model,
     messages=messages,
-    functions=[signature_make_todo_list],
-    function_call=function_call)
+    tools=tools,
+    tool_choice=tool_choice)
     
     response = res.choices[0].message
     content = response.content 
     role = response.role
-
+    print("role is " + role)
     finish_reason = res.choices[0].finish_reason
+    print("finish reason is " + finish_reason)
 
     # call functions requested by the model
-    if finish_reason == "function_call":
-        function_name = response.function_call.name
+    if finish_reason == "tool_calls":
+        print("the finish reason is tool call!")
+        function_name = response.tool_calls[0].function.name
+        print("function name is " + function_name)
         if function_name == "make_todo_list":
-            args = json.loads(response.function_call.arguments)
+            args = json.loads(response.tool_calls[0].function.arguments)
             print("tasks is " + args.get("tasks"))
             output = make_todo_list(
                 tasks=args.get("tasks"),
                 user_id=userId,   
             )
-            messages.append({ "role": "assistant", "content": "Your to-do list has been updated, and is available in the \"Todo List\" tab. You can review your tasks there, then use the “Timer” tab to tackle your tasks with a Pomodoro timer. If you want more details about using a Pomodoro timer, or need some encouragement, I\'ll be here. Good luck!"})
+            print("output is " + json.dumps(output))
+            messages.append({ "role": "function", "name": "make_todo_list", "content": json.dumps(output)})
     else:
         messages.append({'role': role, 'content': content})
     
@@ -179,15 +187,13 @@ def get_ai_response(userId, input, messages):
     complete(userId=userId, messages=messages)
 
     # the LLM can chain function calls, this implements a limit
-    # call_count = 0
-    # while messages[-1]['role'] == "function":
-    #     call_count = call_count + 1
-    #     if call_count < function_call_limit:
-    #         complete(messages)
-    #     else:
-    #         complete(messages, function_call="none")
+    call_count = 0
+    while messages[-1]['role'] == "function":
+        call_count = call_count + 1
+        if call_count < function_call_limit:
+            complete(userId=userId, messages=messages)
+        else:
+            complete(userId=userId, messages=messages, tool_choice="none")
     
     # return all messages
     return messages
-
-

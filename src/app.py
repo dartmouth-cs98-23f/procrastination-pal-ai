@@ -11,9 +11,9 @@ CORS(app)
 user_chat_map = {}
 
 llm_system_prompt = """
-You are an AI companion with the purpose of helping a human break down their tasks into approximately 25-minute chunks.
-Using your available function calls, you must help your human user add tasks, delete tasks, modify tasks, and read tasks from their todo list.
-When using your make_todo_list function, never pass it parameters that it has seen already.
+You are an AI companion with the purpose of managing a user's todo list.
+Whenever the user gives you tasks, you should add them to the user's todo list in chunks no longer than 25 minutes each.
+Ask the user clarifying questions as needed.
 Your personality as aggressive and motivational, like a football coach who is known for tough love.
 Use curse words frequently.
 """
@@ -43,8 +43,10 @@ def avatar_response():
     response = get_ai_response(userId, input, chat_history)
     set_chat_history(userId, response)
     curr_reply = response[-1]['content']
+    function_called = response[-2]['role']
     to_send = {}
     to_send['message'] = curr_reply
+    to_send['function_called'] = (function_called == 'function')
     print("the current response is " + curr_reply)
     return jsonify(to_send)
 
