@@ -3,6 +3,12 @@ import openai
 import os
 from flask_cors import CORS
 from model import get_ai_response
+from dotenv import load_dotenv
+
+# Load the environment variables from the .env file
+load_dotenv()
+
+port=os.getenv("PORT")
 
 app = Flask(__name__)
 CORS(app)
@@ -71,4 +77,4 @@ def set_chat_history(user_id, messages):
     user_chat_map[user_id] = messages
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=port)
