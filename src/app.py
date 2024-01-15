@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 # Load the environment variables from the .env file
 load_dotenv()
 
+host=os.getenv("HOST")
 port=os.getenv("PORT")
 
 app = Flask(__name__)
@@ -77,4 +78,4 @@ def set_chat_history(user_id, messages):
     user_chat_map[user_id] = messages
 
 if __name__ == '__main__':
-    app.run(debug=True, port=port)
+    app.run(debug=True, host=host, port=port)
