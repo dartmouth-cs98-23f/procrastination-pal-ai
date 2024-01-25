@@ -20,7 +20,7 @@ llm_model = "gpt-4-1106-preview"
 llm_max_tokens = 31000
 encoding_model_messages = "gpt-4-0613"
 encoding_model_strings = "cl100k_base"
-function_call_limit = 1
+function_call_limit = 3
 
 
 
@@ -42,8 +42,8 @@ def num_tokens_from_messages(messages):
     return num_tokens
 
 
-def make_todo_list(tasks: str = None, user_id: str = None):
-    """Break down the string of user tasks into a todo list for the user"""
+def todo_list_append(tasks: str = None, user_id: str = None):
+    """Break down the string of user tasks into tasks, and append them to the user's todo list"""
 
     prompt_str = """
     A human has provided you with a statement about the tasks that they have to do. 
@@ -101,21 +101,39 @@ def make_todo_list(tasks: str = None, user_id: str = None):
     data = json.loads(chat_message)
     data["userId"] = user_id
     # Make the POST request
-    response = requests.post(node_backend_api+'/modify-todo-list', json=data, headers=headers)
+    response = requests.post(node_backend_api+'/todo-list-append', json=data, headers=headers)
 
     # Print the response from the server
     print(f"Status Code: {response.status_code}")
     print(f"Response Body: {response.text}")
     # Directly parse the JSON response
     response_data = response.json()
-    todolist = response_data['todolist']
+    message = response_data['message']
+    return message
+
+def todo_list_fetch(user_id: str = None):
+    """Fetches a user's current todo list"""
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    # Make the GET request
+    response = requests.get(node_backend_api+'/user/'+user_id, headers=headers)
+
+    # Print the response from the server
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Body: {response.text}")
+    # Directly parse the JSON response
+    response_data = response.json()
+    todolist = response_data['todolist']['tasklist']
     return todolist
 
 tools = [
   {
     "type": "function",
     "function": {
-      "name": "make_todo_list",
+      "name": "todo_list_append",
       "description": "Takes a string containing all user tasks, and appends them to the user's todo list in an organized format.",
       "parameters": {
         "type": "object",
@@ -128,16 +146,18 @@ tools = [
         "required": [],
       },
     }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "todo_list_fetch",
+      "description": "Fetches a JSON-formatted string of the user's current todo list.",
+      "parameters": {
+      },
+    }
   }
-]
 
-# signature_add_todo = {
-#     "name": "add_todo",
-#     "description" : "Give a task and the length, add it into the users todolist. Should be called when a task and a length is provided",
-#     "parameters":{
-#         "type": "object",
-#     }
-# }
+]
 
 
 def complete(userId, messages, tool_choice: str = "auto"):
@@ -153,6 +173,7 @@ def complete(userId, messages, tool_choice: str = "auto"):
     tools=tools,
     tool_choice=tool_choice)
     
+    print("choices length: " + str(len(res.choices)))
     response = res.choices[0].message
     content = response.content 
     role = response.role
@@ -165,15 +186,20 @@ def complete(userId, messages, tool_choice: str = "auto"):
         print("the finish reason is tool call!")
         function_name = response.tool_calls[0].function.name
         print("function name is " + function_name)
-        if function_name == "make_todo_list":
+        if function_name == "todo_list_append":
             args = json.loads(response.tool_calls[0].function.arguments)
             print("tasks is " + args.get("tasks"))
-            output = make_todo_list(
+            output = todo_list_append(
                 tasks=args.get("tasks"),
                 user_id=userId,   
             )
             print("output is " + json.dumps(output))
-            messages.append({ "role": "function", "name": "make_todo_list", "content": json.dumps(output)})
+            messages.append({ "role": "function", "name": "todo_list_append", "content": output})
+        elif function_name == "todo_list_fetch":
+            output = todo_list_fetch(
+                user_id=userId,   
+            )
+            messages.append({ "role": "function", "name": "todo_list_fetch", "content": json.dumps(output)})
     else:
         messages.append({'role': role, 'content': content})
     
@@ -191,10 +217,12 @@ def get_ai_response(userId, input, messages):
     call_count = 0
     while messages[-1]['role'] == "function":
         call_count = call_count + 1
-        if call_count < function_call_limit:
-            complete(userId=userId, messages=messages)
-        else:
+        print("call count is " + str(call_count))
+        # If we just appended to todo list, or at our tool-using limit, no need for more tool usage - just give textual response
+        if messages[-1]['name'] == "todo_list_append" or call_count >= function_call_limit:
             complete(userId=userId, messages=messages, tool_choice="none")
+        else:
+            complete(userId=userId, messages=messages, tool_choice="auto")
     
     # return all messages
     return messages
