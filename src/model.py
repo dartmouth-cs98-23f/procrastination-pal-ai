@@ -45,63 +45,40 @@ def num_tokens_from_messages(messages):
 def todo_list_append(tasks: str = None, user_id: str = None):
     """Break down the string of user tasks into tasks, and append them to the user's todo list"""
 
-    prompt_str = """
-    A human has provided you with a statement about the tasks that they have to do. 
-    This statement may or may not contain the lengths of said tasks. 
-    Your job is to parse the list of tasks into a JSON object, the structure of which will be described below.
-    When parsing the list, you should take the liberty to break down user tasks into subtasks, and ensure that no task is estimated to take longer than 25 minutes.
-    Do not include breaks.
-
-    Return a JSON object that contains a tasklist object, which is a list of todo objects. Todo objects look like this:
-    - task: The task that the human must complete
-    - length: In minutes, the amount of time that this task will take
-    - completed: Whether the task is complete or not (this field should always be set to false)
-
-    Example:
-
-    {
-    "tasklist": {
-    {
-    "task": "Do first math problem",
-    "length": "15",
-    "completed": "false"
-    },
-    {
-    "task": "Do first math problem",
-    "length": "15",
-    "completed": "false"
-    },
-    }
-    }
-    """
-
-
-    messages_temp = [
-    {"role": "system", "content": prompt_str},
-    ]
-
-    message = tasks
-
-    # Add new message to the list
-    messages_temp.append({"role": "user", "content": message})
-
-    # Request model for chat completion
-    response = client.chat.completions.create(model="gpt-4-1106-preview",
-    messages=messages_temp,
-    response_format={ "type": "json_object" })
-
-    # Print the response and add it to the messages list
-    chat_message = response.choices[0].message.content
-    print(f"Bot: {chat_message}")
+    # Get the tasks in json format
+    json_to_append = tasks_to_json(tasks)
     # Send this to the actual backend
     # Headers to specify that the request body is JSON
     headers = {
         'Content-Type': 'application/json'
     }
-    data = json.loads(chat_message)
+    data = json_to_append
     data["userId"] = user_id
     # Make the POST request
     response = requests.post(node_backend_api+'/todo-list-append', json=data, headers=headers)
+
+    # Print the response from the server
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Body: {response.text}")
+    # Directly parse the JSON response
+    response_data = response.json()
+    message = response_data['message']
+    return message
+
+def todo_list_overwrite(tasks: str = None, user_id: str = None):
+    """Break down the string of user tasks into tasks, and overwrite the user's existing todolist with these tasks"""
+
+    # Get the tasks in json format
+    json_to_append = tasks_to_json(tasks)
+    # Send this to the actual backend
+    # Headers to specify that the request body is JSON
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    data = json_to_append
+    data["userId"] = user_id
+    # Make the POST request
+    response = requests.post(node_backend_api+'/todo-list-overwrite', json=data, headers=headers)
 
     # Print the response from the server
     print(f"Status Code: {response.status_code}")
@@ -135,6 +112,23 @@ tools = [
     "function": {
       "name": "todo_list_append",
       "description": "Takes a string containing all user tasks, and appends them to the user's todo list in an organized format.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tasks": {
+                "type": "string",
+                "description": "String of user tasks and their estimated time to complete",
+            },
+        },
+        "required": [],
+      },
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "todo_list_overwrite",
+      "description": "Takes a string containing all user tasks, and overwrites the user's existing todo list with these tasks.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -193,8 +187,17 @@ def complete(userId, messages, tool_choice: str = "auto"):
                 tasks=args.get("tasks"),
                 user_id=userId,   
             )
-            print("output is " + json.dumps(output))
+            print("output is " + output)
             messages.append({ "role": "function", "name": "todo_list_append", "content": output})
+        elif function_name == "todo_list_overwrite":
+            args = json.loads(response.tool_calls[0].function.arguments)
+            print("tasks is " + args.get("tasks"))
+            output = todo_list_append(
+                tasks=args.get("tasks"),
+                user_id=userId,   
+            )
+            print("output is " + output)
+            messages.append({ "role": "function", "name": "todo_list_overwrite", "content": output})
         elif function_name == "todo_list_fetch":
             output = todo_list_fetch(
                 user_id=userId,   
@@ -218,11 +221,65 @@ def get_ai_response(userId, input, messages):
     while messages[-1]['role'] == "function":
         call_count = call_count + 1
         print("call count is " + str(call_count))
-        # If we just appended to todo list, or at our tool-using limit, no need for more tool usage - just give textual response
-        if messages[-1]['name'] == "todo_list_append" or call_count >= function_call_limit:
+        # If we just appended or overwrote todo list, or at our tool-using limit, no need for more tool usage - just give textual response
+        if messages[-1]['name'] == "todo_list_append" or messages[-1]['name'] == "todo_list_overwrite" or call_count >= function_call_limit:
             complete(userId=userId, messages=messages, tool_choice="none")
         else:
             complete(userId=userId, messages=messages, tool_choice="auto")
     
     # return all messages
     return messages
+
+
+def tasks_to_json(tasks : str = None):
+    """Given a string of tasks, parses them into a json object that can be added to a user's todo list"""
+
+    prompt_str = """
+    A human has provided you with a statement about the tasks that they have to do. 
+    This statement may or may not contain the lengths of said tasks. 
+    Your job is to parse the list of tasks into a JSON object, the structure of which will be described below.
+    When parsing the list, you should take the liberty to break down user tasks into subtasks, and ensure that no task is estimated to take longer than 25 minutes.
+    Do not include breaks.
+
+    Return a JSON object that contains a tasklist object, which is a list of todo objects. Todo objects look like this:
+    - task: The task that the human must complete
+    - length: In minutes, the amount of time that this task will take
+    - completed: Whether the task is complete or not (this field should always be set to false)
+
+    Example:
+
+    {
+    "tasklist": {
+    {
+    "task": "Do first math problem",
+    "length": "15",
+    "completed": "false"
+    },
+    {
+    "task": "Do first math problem",
+    "length": "15",
+    "completed": "false"
+    },
+    }
+    }
+    """
+
+
+    messages_temp = [
+    {"role": "system", "content": prompt_str},
+    ]
+
+    message = tasks
+
+    # Add new message to the list
+    messages_temp.append({"role": "user", "content": message})
+
+    # Request model for chat completion
+    response = client.chat.completions.create(model="gpt-4-1106-preview",
+    messages=messages_temp,
+    response_format={ "type": "json_object" })
+
+    # Print the response and add it to the messages list
+    chat_message = response.choices[0].message.content
+    print(f"Bot: {chat_message}")
+    return json.loads(chat_message)
