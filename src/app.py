@@ -50,6 +50,9 @@ def avatar_response():
     data = request.json
     input = data.get('input')
     userId = data.get('userId')
+    # If the user isn't in the chat map, add them
+    if(not userId in user_chat_map):
+        add_to_map(userId)
     chat_history = get_chat_history(userId)
     response = get_ai_response(userId, input, chat_history)
     set_chat_history(userId, response)
