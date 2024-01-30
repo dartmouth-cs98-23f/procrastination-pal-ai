@@ -187,16 +187,16 @@ def complete(userId, messages, tool_choice: str = "auto"):
                 tasks=args.get("tasks"),
                 user_id=userId,   
             )
-            print("output is " + output)
+            print("output is " + str(output))
             messages.append({ "role": "function", "name": "todo_list_append", "content": output})
         elif function_name == "todo_list_overwrite":
             args = json.loads(response.tool_calls[0].function.arguments)
             print("tasks is " + args.get("tasks"))
-            output = todo_list_append(
+            output = todo_list_overwrite(
                 tasks=args.get("tasks"),
                 user_id=userId,   
             )
-            print("output is " + output)
+            print("output is " + str(output))
             messages.append({ "role": "function", "name": "todo_list_overwrite", "content": output})
         elif function_name == "todo_list_fetch":
             output = todo_list_fetch(
