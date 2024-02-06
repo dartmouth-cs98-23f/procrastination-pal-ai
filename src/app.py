@@ -22,16 +22,17 @@ You are an AI companion with the purpose of breaking down a user's tasks into ap
 Don't include breaks in your task breakdown.
 Once you've helped a user break their tasks down, you should ask the user if they'd like these tasks added to their todo list, and act accordingly.
 If the user wants to edit or replace their todo list, overwrite their existing todo list according to the user's desires.
-Your personality as aggressive and motivational, like a football coach who is known for tough love.
-Use curse words frequently.
 """
 
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
     userId = data.get('userId')
- 
-    add_to_map(userId)
+    questions = data.get('questionList')
+    responses = data.get('responseList')
+    print("questions: ", questions)
+    print("respones: ", responses)
+    add_to_map(userId, get_personality(responses))
     print("user id " + userId + " added to map!")
     message = "Login successful. User was added to the map."
 
@@ -41,7 +42,9 @@ def login():
 def signup():
     data = request.json
     userId = data.get('userId')
-    add_to_map(userId)
+    questions = data.get('questionList')
+    responses = data.get('responseList')
+    add_to_map(userId, get_personality(responses))
     print("user id " + userId + " added to map!")
     return jsonify({"message": "Signup successful"}), 200
 
@@ -50,9 +53,11 @@ def avatar_response():
     data = request.json
     input = data.get('input')
     userId = data.get('userId')
+    questions = data.get('questionList')
+    responses = data.get('responseList')
     # If the user isn't in the chat map, add them
     if(not userId in user_chat_map):
-        add_to_map(userId)
+        add_to_map(userId, get_personality(responses))
     chat_history = get_chat_history(userId)
     response = get_ai_response(userId, input, chat_history)
     set_chat_history(userId, response)
@@ -64,13 +69,11 @@ def avatar_response():
     print("the current response is " + curr_reply)
     return jsonify(to_send)
 
-
-
 # Utility functions for user chat history map
 
-def add_to_map(user_id):
+def add_to_map(user_id, personality):
     # Start user chat history off with prompt
-    user_chat_map[user_id] = [{"role": "system", "content": llm_system_prompt}]
+    user_chat_map[user_id] = [{"role": "system", "content": llm_system_prompt + personality}]
     print("Size of user chatbot map:", len(user_chat_map))
 
 def get_chat_history(user_id):
@@ -79,6 +82,17 @@ def get_chat_history(user_id):
 
 def set_chat_history(user_id, messages):
     user_chat_map[user_id] = messages
+
+def get_personality(responses):
+    if responses[0] == 1:
+        personality = "Your personality is aggressive and motivational, like a football coach who is known for tough love. Use curse words frequently."
+    elif responses[0] == 2:
+        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
+    elif responses[0] == 3:
+        personality = "Your personality is stern, like a strict tutor."
+    elif responses[0] == 4:
+        personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
+    return personality
 
 if __name__ == '__main__':
     app.run(debug=True, host=host, port=port)
