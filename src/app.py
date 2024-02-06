@@ -4,7 +4,6 @@ import os
 from flask_cors import CORS
 from model import get_ai_response
 from dotenv import load_dotenv
-from enum import Enum
 
 # Load the environment variables from the .env file
 load_dotenv()
@@ -17,13 +16,6 @@ CORS(app)
 
 # Dictionary to map from user to chat history
 user_chat_map = {}
-
-# Define an enum for user's desired personality type
-class PersonalityType(Enum):
-    TOUGH_LOVE = 'Tough love, like a football coach' 
-    KIND_AND_SUPPORTIVE = 'Kind and supportive, like an elementary school teacher'
-    STERN = 'Stern, like an old and wise tutor'
-    DOUCHEY_AND_OBNOXIOUS = 'Douchey and obnoxious, like a frat bro'
 
 llm_system_prompt = """
 You are an AI companion with the purpose of breaking down a user's tasks into approximately 25-minute chunks.
@@ -83,7 +75,9 @@ def avatar_response():
 
 def add_to_map(user_id, personality):
     # Start user chat history off with prompt
-    user_chat_map[user_id] = [{"role": "system", "content": llm_system_prompt + "\n" + personality}]
+    prompt_str = llm_system_prompt + personality
+    print("in add to map, the prompt is: " + prompt_str)
+    user_chat_map[user_id] = [{"role": "system", "content": prompt_str}]
     print("Size of user chatbot map:", len(user_chat_map))
 
 def get_chat_history(user_id):
@@ -99,25 +93,21 @@ def get_personality(responses):
 
     # Find the full response text for questionId 4
     response_for_question_4_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), None)
+    print("response for question 4 full text: " + response_for_question_4_full_text)
 
     # Adjusted to match the enum based on the actual response text
     personality = ""
-    if response_for_question_4_full_text:
-        # Normalize the response to match with enum values
-        normalized_response = response_for_question_4_full_text.strip().capitalize()
-
-        if normalized_response in (pt.value for pt in PersonalityType):
-            if normalized_response == PersonalityType.TOUGH_LOVE.value:
-                personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
-            elif normalized_response == PersonalityType.KIND_AND_SUPPORTIVE.value:
-                personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
-            elif normalized_response == PersonalityType.STERN.value:
-                personality = "Your personality is stern, like a strict tutor."
-            elif normalized_response == PersonalityType.DOUCHEY_AND_OBNOXIOUS.value:
-                personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
-        else:
-            personality = "Personality not found based on the response."
-
+    if response_for_question_4_full_text == "Tough love":
+        personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
+    elif response_for_question_4_full_text == "Kind and supportive":
+        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
+    elif response_for_question_4_full_text == "Stern":
+        personality = "Your personality is stern, like a strict tutor."
+    elif response_for_question_4_full_text == "Douchey and obnoxious":
+        personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
+    else:
+        personality = "Personality not found based on the response."
+    print("personality we return is " + personality)
     return personality
 
 if __name__ == '__main__':
