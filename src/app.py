@@ -4,6 +4,7 @@ import os
 from flask_cors import CORS
 from model import get_ai_response
 from dotenv import load_dotenv
+from enum import Enum
 
 # Load the environment variables from the .env file
 load_dotenv()
@@ -16,6 +17,13 @@ CORS(app)
 
 # Dictionary to map from user to chat history
 user_chat_map = {}
+
+# Define an enum for user's desired personality type
+class PersonalityType(Enum):
+    TOUGH_LOVE = 'Tough love, like a football coach' 
+    KIND_AND_SUPPORTIVE = 'Kind and supportive, like an elementary school teacher'
+    STERN = 'Stern, like an old and wise tutor'
+    DOUCHEY_AND_OBNOXIOUS = 'Douchey and obnoxious, like a frat bro'
 
 llm_system_prompt = """
 You are an AI companion with the purpose of breaking down a user's tasks into approximately 25-minute chunks.
@@ -44,6 +52,8 @@ def signup():
     userId = data.get('userId')
     questions = data.get('questionList')
     responses = data.get('responseList')
+    print("questions: ", questions)
+    print("respones: ", responses)
     add_to_map(userId, get_personality(responses))
     print("user id " + userId + " added to map!")
     return jsonify({"message": "Signup successful"}), 200
@@ -73,7 +83,7 @@ def avatar_response():
 
 def add_to_map(user_id, personality):
     # Start user chat history off with prompt
-    user_chat_map[user_id] = [{"role": "system", "content": llm_system_prompt + personality}]
+    user_chat_map[user_id] = [{"role": "system", "content": llm_system_prompt + "\n" + personality}]
     print("Size of user chatbot map:", len(user_chat_map))
 
 def get_chat_history(user_id):
@@ -84,14 +94,30 @@ def set_chat_history(user_id, messages):
     user_chat_map[user_id] = messages
 
 def get_personality(responses):
-    if responses[0] == 1:
-        personality = "Your personality is aggressive and motivational, like a football coach who is known for tough love. Use curse words frequently."
-    elif responses[0] == 2:
-        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
-    elif responses[0] == 3:
-        personality = "Your personality is stern, like a strict tutor."
-    elif responses[0] == 4:
-        personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
+    # Assuming responses is already a dictionary
+    data = responses
+
+    # Find the full response text for questionId 4
+    response_for_question_4_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), None)
+
+    # Adjusted to match the enum based on the actual response text
+    personality = ""
+    if response_for_question_4_full_text:
+        # Normalize the response to match with enum values
+        normalized_response = response_for_question_4_full_text.strip().capitalize()
+
+        if normalized_response in (pt.value for pt in PersonalityType):
+            if normalized_response == PersonalityType.TOUGH_LOVE.value:
+                personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
+            elif normalized_response == PersonalityType.KIND_AND_SUPPORTIVE.value:
+                personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
+            elif normalized_response == PersonalityType.STERN.value:
+                personality = "Your personality is stern, like a strict tutor."
+            elif normalized_response == PersonalityType.DOUCHEY_AND_OBNOXIOUS.value:
+                personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
+        else:
+            personality = "Personality not found based on the response."
+
     return personality
 
 if __name__ == '__main__':
