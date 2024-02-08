@@ -30,9 +30,14 @@ def login():
     userId = data.get('userId')
     questions = data.get('questionList')
     responses = data.get('responseList')
+    # Default personality
+    personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
+    # If there actually are responses - 7 is kind arbitrary, just a hotfix
+    if (len(str(responses))) > 7:
+        personality = get_personality(responses)
     print("questions: ", questions)
     print("respones: ", responses)
-    add_to_map(userId, get_personality(responses))
+    add_to_map(userId, personality)
     print("user id " + userId + " added to map!")
     message = "Login successful. User was added to the map."
 
