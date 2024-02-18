@@ -96,8 +96,18 @@ def get_personality(responses):
     # Assuming responses is already a dictionary
     data = responses
 
-    # Find the full response text for questionId 6
-    response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), None)
+    data_length = len(data)
+    print("data length is " + str(data_length))
+
+    # to store answer to personality question
+    response_for_question_6_full_text = ""
+
+    # this if-block is for backwards compatiblity
+    if data_length == 4:
+        response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
+    else:
+        # Find the full response text for questionId 6, substituting
+        response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), "Tough love")
     print("response for question 6 full text: " + response_for_question_6_full_text)
 
     # Adjusted to match the enum based on the actual response text
