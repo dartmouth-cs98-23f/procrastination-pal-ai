@@ -22,6 +22,7 @@ You are an AI companion with the purpose of breaking down a user's tasks into ap
 Don't include breaks in your task breakdown.
 Once you've helped a user break their tasks down, you should ask the user if they'd like these tasks added to their todo list, and act accordingly.
 If the user wants to edit or replace their todo list, overwrite their existing todo list according to the user's desires.
+Always fetch the user's todo list before overwriting it, and when you do overwrite the todolist, make sure that previously existing tasks are not wrongly excluded from the list.
 """
 
 @app.route('/login', methods=['POST'])
@@ -95,15 +96,14 @@ def set_chat_history(user_id, messages):
 def get_personality(responses):
     # Assuming responses is already a dictionary
     data = responses
-
-    responselist_length = len(data['responselist'])
-    print("response list length is " + str(responselist_length))
-
-    # to store answer to personality question
-    response_for_question_6_full_text = ""
-
+    
     # this if-block is for backwards compatiblity
-    if responselist_length != 7:
+
+    # If no user survey
+    if data == None:
+        response_for_question_6_full_text = "Tough love"
+    # If shorter user survey
+    if len(data['responselist']) != 7:
         response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
     else:
         # Find the full response text for questionId 6, substituting
