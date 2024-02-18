@@ -96,19 +96,19 @@ def get_personality(responses):
     # Assuming responses is already a dictionary
     data = responses
 
-    # Find the full response text for questionId 4
-    response_for_question_4_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), None)
-    print("response for question 4 full text: " + response_for_question_4_full_text)
+    # Find the full response text for questionId 6
+    response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), None)
+    print("response for question 6 full text: " + response_for_question_6_full_text)
 
     # Adjusted to match the enum based on the actual response text
     personality = ""
-    if response_for_question_4_full_text == "Tough love":
+    if response_for_question_6_full_text == "Tough love":
         personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
-    elif response_for_question_4_full_text == "Kind and supportive":
+    elif response_for_question_6_full_text == "Kind and supportive":
         personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
-    elif response_for_question_4_full_text == "Stern":
+    elif response_for_question_6_full_text == "Stern":
         personality = "Your personality is stern, like a strict tutor."
-    elif response_for_question_4_full_text == "Douchey and obnoxious":
+    elif response_for_question_6_full_text == "Douchey and obnoxious":
         personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
     else:
         personality = "Personality not found based on the response."
