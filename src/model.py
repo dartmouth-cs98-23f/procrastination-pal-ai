@@ -66,7 +66,7 @@ def todo_list_append(tasks: str = None, user_id: str = None):
     return message
 
 def todo_list_overwrite(tasks: str = None, user_id: str = None):
-    """Break down the string of user tasks into tasks, and overwrite the user's existing todolist with these tasks"""
+    """Break down the string of user tasks into tasks, and overwrite the user's existing todolist with these tasks."""
 
     # Get the tasks in json format
     json_to_append = tasks_to_json(tasks)
