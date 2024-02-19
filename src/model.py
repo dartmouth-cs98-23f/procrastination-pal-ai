@@ -204,7 +204,7 @@ def complete(userId, messages, tool_choice: str = "auto"):
             )
             messages.append({ "role": "function", "name": "todo_list_fetch", "content": json.dumps(output)})
     else:
-        messages.append({'role': role, 'content': content})
+        messages.append({'role': role, 'content': content.rstrip()})
     
     print("trying to access messages woooo! After running complete")
     for thing in messages:
