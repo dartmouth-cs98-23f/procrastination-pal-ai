@@ -94,6 +94,7 @@ def set_chat_history(user_id, messages):
     user_chat_map[user_id] = messages
 
 def get_personality(responses):
+    
     # Assuming responses is already a dictionary
     data = responses
     
@@ -101,24 +102,24 @@ def get_personality(responses):
 
     # If no user survey
     if data == None:
-        response_for_question_6_full_text = "Tough love"
+        personality_response = "Tough love"
     # If shorter user survey
-    if len(data['responselist']) != 7:
-        response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
+    if len(data['responselist']) < 6:
+        personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
     else:
         # Find the full response text for questionId 6, substituting
-        response_for_question_6_full_text = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), "Tough love")
-    print("response for question 6 full text: " + response_for_question_6_full_text)
+        personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), "Tough love")
+    print("response for question 6 full text: " + personality_response)
 
     # Adjusted to match the enum based on the actual response text
     personality = ""
-    if response_for_question_6_full_text == "Tough love":
+    if personality_response == "Tough love":
         personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
-    elif response_for_question_6_full_text == "Kind and supportive":
+    elif personality_response == "Kind and supportive":
         personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
-    elif response_for_question_6_full_text == "Stern":
+    elif personality_response == "Stern":
         personality = "Your personality is stern, like a strict tutor."
-    elif response_for_question_6_full_text == "Douchey and obnoxious":
+    elif personality_response == "Douchey and obnoxious":
         personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
     else:
         personality = "Personality not found based on the response."
