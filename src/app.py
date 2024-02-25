@@ -104,8 +104,11 @@ def get_personality(responses):
     if data == None:
         personality_response = "Tough love"
     # If shorter user survey
-    if len(data['responselist']) < 6:
-        personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
+    if data == None or len(data['responselist']) < 6:
+        if data == None:
+            personality_response = "Tough love"
+        else:
+            personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
     else:
         # Find the full response text for questionId 6, substituting
         personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), "Tough love")
