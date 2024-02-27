@@ -122,7 +122,7 @@ def get_personality(responses):
     elif personality_response == "Douchey and obnoxious":
         personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
     else:
-        personality = "Personality not found based on the response."
+        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
     print("personality we return is " + personality)
     return personality
 
