@@ -104,15 +104,15 @@ def get_personality(responses):
     if data == None:
         personality_response = "Tough love"
     # If shorter user survey
-    if data == None or len(data['responselist']) < 6:
+    if data == None or len(data['responselist']) < 5:
         if data == None:
-            personality_response = "Tough love"
+            personality_response = "Kind and supportive"
         else:
             personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
     else:
-        # Find the full response text for questionId 6, substituting
-        personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 6), "Tough love")
-    print("response for question 6 full text: " + personality_response)
+        # Find the full response text for questionId 5, substituting
+        personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 5), "Tough love")
+    print("response for question 5 full text: " + personality_response)
 
     # Adjusted to match the enum based on the actual response text
     personality = ""
@@ -125,7 +125,7 @@ def get_personality(responses):
     elif personality_response == "Douchey and obnoxious":
         personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
     else:
-        personality = "Personality not found based on the response."
+        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
     print("personality we return is " + personality)
     return personality
 
