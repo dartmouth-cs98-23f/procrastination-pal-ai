@@ -77,6 +77,28 @@ def avatar_response():
     print("the current response is " + curr_reply)
     return jsonify(to_send)
 
+@app.route('/change-personality', methods=['POST'])
+def change_personality():
+    data = request.json
+    userId = data.get('userId')
+    avatarType = data.get('avatarType')
+    print("In change_personality, user id is: " + userId)
+    print("In change_personality, avatarType is: " + avatarType)
+    personality = ""
+    if avatarType == "Tough love":
+        personality = "Your personality is aggressive and motivational, like a football coach known for tough love. Use curse words frequently."
+    elif avatarType == "Kind and supportive":
+        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
+    elif avatarType == "Stern":
+        personality = "Your personality is stern, like a strict tutor."
+    elif avatarType == "Douchey and obnoxious":
+        personality = "Your personality is obnoxious and douchy, like a frat bro who thinks he's really cool."
+    else:
+        personality = "Your personality is gentle and kind, like a compassionate elementary school teacher."
+    print("In change_personality, personality we change to is " + personality)
+    add_to_map(user_id=userId, personality=personality)
+    return jsonify({"message": "Personality change successful"}), 200
+
 # Utility functions for user chat history map
 
 def add_to_map(user_id, personality):
