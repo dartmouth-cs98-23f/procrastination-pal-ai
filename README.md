@@ -17,7 +17,7 @@ We use OpenAI’s API with an iteration of GPT-4 that allows for "function calli
 ## Deployment
 - Ensure that the [primary backend server](https://github.com/dartmouth-cs98-23f/ProcrastinationPal_backend/tree/main) is running.
 - `cd` into `/src` and run `python app.py` or `python3 app.py` to fire up the service.
-- Go to our [frontend repo],(https://github.com/dartmouth-cs98-23f/procrastination-pal-frontend) and follow the instructions in its `README.md` to test locally.
+- Go to our [frontend repo](https://github.com/dartmouth-cs98-23f/procrastination-pal-frontend) and follow the instructions in its `README.md` to test locally.
 
 ## Authors
 
