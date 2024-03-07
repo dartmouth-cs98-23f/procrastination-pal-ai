@@ -25,5 +25,3 @@ We use OpenAI’s API with an iteration of GPT-4 that allows for "function calli
 - Carter Sullivan
 - Nick Luikey
 
-## Acknowledgments
-
