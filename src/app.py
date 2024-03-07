@@ -25,6 +25,13 @@ If the user wants to edit or replace their todo list, overwrite their existing t
 Always fetch the user's todo list before overwriting it, and when you do overwrite the todolist, make sure that previously existing tasks are not wrongly excluded from the list.
 """
 
+personality_list = [
+    "Tough love",
+    "Kind and supportive",
+    "Stern",
+    "Douchey and obnoxious"
+]
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -119,22 +126,17 @@ def get_personality(responses):
     
     # Assuming responses is already a dictionary
     data = responses
-    
-    # this if-block is for backwards compatiblity
+    # Default personality
+    personality_response = "Kind and supportive"
+    if data is not None:
+        response_list = data['responselist']
+        if len(response_list) > 0 and response_list[0] is not None:
+            for item in response_list:
+                temp = item['response']
+                if temp in personality_list:
+                    personality_response = temp
+                    break
 
-    # If no user survey
-    if data == None:
-        personality_response = "Tough love"
-    # If shorter user survey
-    if data == None or len(data['responselist']) < 5:
-        if data == None:
-            personality_response = "Kind and supportive"
-        else:
-            personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 4), "Tough love")
-    else:
-        # Find the full response text for questionId 5, substituting
-        personality_response = next((item['response'] for item in data['responselist'] if item['questionId'] == 5), "Tough love")
-    print("response for question 5 full text: " + personality_response)
 
     # Adjusted to match the enum based on the actual response text
     personality = ""
